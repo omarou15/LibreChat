@@ -37,6 +37,9 @@ import SendButton from './SendButton';
 import EditBadges from './EditBadges';
 import BadgeRow from './BadgeRow';
 import Mention from './Mention';
+import AIToggle from './AIToggle';
+import PendingQueue from './PendingQueue';
+import useAIToggle from '~/hooks/Chat/useAIToggle';
 import store from '~/store';
 
 interface ChatFormProps {
@@ -154,6 +157,9 @@ const ChatForm = memo(function ChatForm({
   });
 
   const { submitMessage, submitPrompt } = useSubmitMessage();
+
+  const { aiEnabled, toggleAI, pendingMessages, sendPendingQueue, queueSubmitting, isNewConvo } =
+    useAIToggle({ conversationId, index });
 
   const handleKeyUp = useHandleKeyUp({
     index,
@@ -338,19 +344,31 @@ const ChatForm = memo(function ChatForm({
                 </div>
               </div>
             )}
+            <PendingQueue
+              pendingMessages={pendingMessages}
+              queueSubmitting={queueSubmitting}
+              hasFiles={files.size > 0}
+              onSend={sendPendingQueue}
+            />
             <div
               className={cn(
                 '@container items-between flex gap-2 pb-2',
                 isRTL ? 'flex-row-reverse' : 'flex-row',
               )}
             >
-              <div className={`${isRTL ? 'mr-2' : 'ml-2'}`}>
+              <div className={`${isRTL ? 'mr-2' : 'ml-2'} flex items-center gap-1`}>
                 <AttachFileChat
                   conversation={conversation}
                   disableInputs={disableInputs}
                   files={files}
                   setFiles={setFiles}
                   setFilesLoading={setFilesLoading}
+                />
+                <AIToggle
+                  aiEnabled={aiEnabled}
+                  isNewConvo={isNewConvo}
+                  pendingCount={pendingMessages.length}
+                  onToggle={toggleAI}
                 />
               </div>
               <BadgeRow

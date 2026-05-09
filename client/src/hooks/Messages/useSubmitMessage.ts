@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { replaceSpecialVars } from 'librechat-data-provider';
+import { Constants, replaceSpecialVars } from 'librechat-data-provider';
 import { useChatContext, useChatFormContext, useAddedChatContext } from '~/Providers';
 import { useAuthContext } from '~/hooks/AuthContext';
 import { mainTextareaId } from '~/common';
@@ -13,6 +13,12 @@ export default function useSubmitMessage() {
   const { ask, index, getMessages, setMessages } = useChatContext();
   const latestMessage = useRecoilValue(store.latestMessageFamily(index));
 
+  const rawConvoId = useRecoilValue(store.conversationIdByIndex(index));
+  const conversationId = rawConvoId ?? Constants.NEW_CONVO;
+
+  const aiEnabled = useRecoilValue(store.aiEnabledByConversation(conversationId));
+  const setPendingMessages = useSetRecoilState(store.pendingMessagesByConversation(conversationId));
+
   const autoSendPrompts = useRecoilValue(store.autoSendPrompts);
   const setActivePrompt = useSetRecoilState(store.activePromptByIndex(index));
 
@@ -21,6 +27,13 @@ export default function useSubmitMessage() {
       if (!data) {
         return console.warn('No data provided to submitMessage');
       }
+
+      if (!aiEnabled) {
+        setPendingMessages((prev) => [...prev, data.text]);
+        methods.reset();
+        return;
+      }
+
       const rootMessages = getMessages();
       const isLatestInRootMessages = rootMessages?.some(
         (message) => message.messageId === latestMessage?.messageId,
@@ -39,7 +52,7 @@ export default function useSubmitMessage() {
       );
       methods.reset();
     },
-    [ask, methods, addedConvo, setMessages, getMessages, latestMessage],
+    [ask, methods, addedConvo, aiEnabled, setPendingMessages, setMessages, getMessages, latestMessage],
   );
 
   const submitPrompt = useCallback(

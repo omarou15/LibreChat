@@ -1721,5 +1721,13 @@
   "com_ui_zoom_in": "Zoom in",
   "com_ui_zoom_level": "Zoom level",
   "com_ui_zoom_out": "Zoom out",
+  "com_ui_ai_toggle_tooltip_on": "AI active — click to pause",
+  "com_ui_ai_toggle_tooltip_off": "AI paused — messages are queued",
+  "com_ui_ai_toggle_disabled_tooltip": "Start a conversation to use this feature",
+  "com_ui_ai_queue_send": "Send {{0}} queued message(s) to AI",
+  "com_ui_ai_queue_files_excluded": "File attachments cannot be queued — text only",
+  "com_ui_ai_queue_item": "Message {{0}}",
+  "com_ui_ai_queue_submitting": "Sending to AI…",
+  "com_ui_ai_queue_empty_on_toggle": "AI re-enabled — no pending messages"
   "com_user_message": "You"
 }
