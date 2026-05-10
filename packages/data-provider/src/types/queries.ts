@@ -216,6 +216,19 @@ export type TUserFavorite = {
   skillId?: string;
 };
 
+/* Admin Users */
+export type AdminUserListItem = {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  avatar: string;
+  role: string;
+  provider: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 /* SharePoint Graph API Token */
 export type GraphTokenParams = {
   scopes: string;

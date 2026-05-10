@@ -408,6 +408,11 @@ export const skillTree = ({ skillId, path = '' }: { skillId: string; path?: stri
 /* Skill active states (per-user overrides) */
 export const skillStates = () => `${BASE_URL}/api/user/settings/skills/active`;
 
+/* Admin Users */
+export const adminUsers = () => `${BASE_URL}/api/admin/users`;
+export const adminInviteUser = () => `${BASE_URL}/api/admin/users/invite`;
+export const adminDeleteUser = (id: string) => `${BASE_URL}/api/admin/users/${encodeURIComponent(id)}`;
+
 /* Roles */
 export const roles = () => `${BASE_URL}/api/roles`;
 export const adminRoles = () => `${BASE_URL}/api/admin/roles`;

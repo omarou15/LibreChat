@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
-import { SettingsTabValues } from 'librechat-data-provider';
-import { MessageSquare, Command, DollarSign } from 'lucide-react';
+import { SettingsTabValues, SystemRoles } from 'librechat-data-provider';
+import { MessageSquare, Command, DollarSign, Users as UsersIcon } from 'lucide-react';
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import {
   GearIcon,
@@ -21,10 +21,13 @@ import {
   Data,
   Balance,
   Account,
+  Users,
 } from './SettingsTabs';
 import usePersonalizationAccess from '~/hooks/usePersonalizationAccess';
 import { useLocalize, TranslationKeys } from '~/hooks';
 import { useGetStartupConfig } from '~/data-provider';
+import { useRecoilValue } from 'recoil';
+import store from '~/store';
 import { cn } from '~/utils';
 
 export default function Settings({ open, onOpenChange }: TDialogProps) {
@@ -32,6 +35,8 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
   const { data: startupConfig } = useGetStartupConfig();
   const localize = useLocalize();
   const [activeTab, setActiveTab] = useState(SettingsTabValues.GENERAL);
+  const currentUser = useRecoilValue(store.user);
+  const isAdmin = currentUser?.role === SystemRoles.ADMIN;
   const tabRefs = useRef({});
   const { hasAnyPersonalizationFeature, hasMemoryOptOut } = usePersonalizationAccess();
 
@@ -121,6 +126,15 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
       icon: <UserIcon />,
       label: 'com_nav_setting_account',
     },
+    ...(isAdmin
+      ? [
+          {
+            value: SettingsTabValues.USERS,
+            icon: <UsersIcon className="icon-sm" aria-hidden="true" />,
+            label: 'com_nav_setting_users' as TranslationKeys,
+          },
+        ]
+      : []),
   ];
 
   const handleTabChange = (value: string) => {
@@ -251,6 +265,11 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
                     <Tabs.Content value={SettingsTabValues.ACCOUNT} tabIndex={-1}>
                       <Account />
                     </Tabs.Content>
+                    {isAdmin && (
+                      <Tabs.Content value={SettingsTabValues.USERS} tabIndex={-1}>
+                        <Users />
+                      </Tabs.Content>
+                    )}
                   </div>
                 </Tabs.Root>
               </div>

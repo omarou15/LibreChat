@@ -1044,6 +1044,26 @@ export const updateSkillNodeContent = (variables: {
   });
 };
 
+/* Admin Users */
+export function listAdminUsers(params?: {
+  limit?: number;
+  offset?: number;
+}): Promise<{ users: q.AdminUserListItem[]; total: number; limit: number; offset: number }> {
+  const search = new URLSearchParams();
+  if (params?.limit != null) search.set('limit', String(params.limit));
+  if (params?.offset != null) search.set('offset', String(params.offset));
+  const qs = search.toString();
+  return request.get(`${endpoints.adminUsers()}${qs ? `?${qs}` : ''}`);
+}
+
+export function inviteAdminUser(email: string): Promise<{ message: string }> {
+  return request.post(endpoints.adminInviteUser(), { email });
+}
+
+export function deleteAdminUser(id: string): Promise<{ message: string }> {
+  return request.delete(endpoints.adminDeleteUser(id));
+}
+
 /* Roles */
 export function listRoles(): Promise<q.ListRolesResponse> {
   return request.get(`${endpoints.adminRoles()}?limit=200`);

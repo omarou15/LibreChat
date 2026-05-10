@@ -2078,6 +2078,10 @@ export enum SettingsTabValues {
    * Tab for Personalization Settings
    */
   PERSONALIZATION = 'personalization',
+  /**
+   * Tab for User Management (admin only)
+   */
+  USERS = 'users',
 }
 
 export enum STTProviders {
