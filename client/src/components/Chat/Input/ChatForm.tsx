@@ -39,6 +39,7 @@ import BadgeRow from './BadgeRow';
 import Mention from './Mention';
 import AIToggle from './AIToggle';
 import PendingQueue from './PendingQueue';
+import FieldToolsButton from '~/components/FieldTools/FieldToolsButton';
 import useAIToggle from '~/hooks/Chat/useAIToggle';
 import store from '~/store';
 
@@ -158,19 +159,22 @@ const ChatForm = memo(function ChatForm({
 
   const { submitMessage, submitPrompt } = useSubmitMessage();
 
-  const { aiEnabled, toggleAI, pendingMessages, addToPending, sendPendingQueue, queueSubmitting } =
+  const { aiEnabled, isOnline, toggleAI, pendingMessages, addToPending, sendPendingQueue, queueSubmitting } =
     useAIToggle({ conversationId, index });
 
   const handleSubmit = useCallback(
     (data: { text: string }) => {
-      if (!aiEnabled) {
+      if (!aiEnabled || !isOnline) {
+        if (files.size > 0) {
+          return;
+        }
         addToPending(data.text);
         methods.reset();
         return;
       }
       submitMessage(data);
     },
-    [aiEnabled, addToPending, submitMessage, methods],
+    [aiEnabled, isOnline, files, addToPending, submitMessage, methods],
   );
 
   const handleKeyUp = useHandleKeyUp({
@@ -378,13 +382,15 @@ const ChatForm = memo(function ChatForm({
                 />
                 <AIToggle
                   aiEnabled={aiEnabled}
+                  isOnline={isOnline}
                   pendingCount={pendingMessages.length}
                   onToggle={toggleAI}
                 />
+                <FieldToolsButton />
               </div>
               <BadgeRow
                 showEphemeralBadges={
-                  !!endpoint && !isAgentsEndpoint(endpoint) && !isAssistantsEndpoint(endpoint)
+                  !!endpoint && !isAssistantsEndpoint(endpoint)
                 }
                 isSubmitting={isSubmitting}
                 conversationId={conversationId}

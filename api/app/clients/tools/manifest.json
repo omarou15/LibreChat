@@ -1,5 +1,19 @@
 [
   {
+    "name": "ADEME DPE",
+    "pluginKey": "ademe_dpe",
+    "description": "Recherche les Diagnostics de Performance Énergétique (DPE) ADEME pour une adresse. Retourne étiquette énergie/GES, surface, année de construction, systèmes de chauffage, ECS, ventilation et isolation.",
+    "icon": "assets/ademe.png",
+    "authConfig": []
+  },
+  {
+    "name": "BDNB Bâtiment",
+    "pluginKey": "bdnb_batiment",
+    "description": "Recherche les données d'un bâtiment dans la Base Nationale des Bâtiments (BDNB/CSTB). Retourne année construction, surface, matériaux, DPE estimé, nombre de logements et niveaux.",
+    "icon": "assets/bdnb.png",
+    "authConfig": []
+  },
+  {
     "name": "Traversaal",
     "pluginKey": "traversaal_search",
     "description": "Traversaal is a robust search API tailored for LLM Agents. Get an API key here: https://api.traversaal.ai",

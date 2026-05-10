@@ -350,8 +350,53 @@ export const fileSearchSchema: ExtendedJsonSchema = {
   required: ['query'],
 };
 
+/** ADEME DPE tool JSON schema */
+export const ademeDpeSchema: ExtendedJsonSchema = {
+  type: 'object',
+  properties: {
+    address: {
+      type: 'string',
+      minLength: 5,
+      description: "Adresse complète du bâtiment (ex: '35 rue de la Paix 75001 Paris')",
+    },
+    type: {
+      type: 'string',
+      enum: ['logement', 'tertiaire'],
+      description: "Type : 'logement' (défaut) pour résidentiel, 'tertiaire' pour bureaux/commerces",
+    },
+  },
+  required: ['address'],
+};
+
+/** BDNB Bâtiment tool JSON schema */
+export const bdnbBatimentSchema: ExtendedJsonSchema = {
+  type: 'object',
+  properties: {
+    address: {
+      type: 'string',
+      minLength: 5,
+      description: "Adresse complète du bâtiment (ex: '35 rue de la Paix 75001 Paris')",
+    },
+  },
+  required: ['address'],
+};
+
 /** Tool definitions registry - maps tool names to their definitions */
 export const toolDefinitions: Record<string, ToolRegistryDefinition> = {
+  ademe_dpe: {
+    name: 'ademe_dpe',
+    description:
+      "Recherche les Diagnostics de Performance Énergétique (DPE) ADEME pour une adresse. Utilise la géolocalisation BAN (rayon 50m) puis fallback texte. Retourne l'étiquette énergie/GES, surface, année construction, systèmes CVC et isolation. Utiliser pour pré-remplir les données d'un bâtiment lors d'une visite technique.",
+    schema: ademeDpeSchema,
+    toolType: 'builtin',
+  },
+  bdnb_batiment: {
+    name: 'bdnb_batiment',
+    description:
+      "Recherche les données du bâtiment dans la Base Nationale des Bâtiments (BDNB/CSTB) pour une adresse. Retourne un digest structuré : année construction, surface, nb logements, niveaux, matériaux, DPE estimé, systèmes CVC, propriétaire, parcelle. Utiliser pour pré-remplir les données d'un bâtiment lors d'une visite technique.",
+    schema: bdnbBatimentSchema,
+    toolType: 'builtin',
+  },
   google: {
     name: 'google',
     description:

@@ -12,6 +12,8 @@ const TraversaalSearch = require('./structured/TraversaalSearch');
 const createOpenAIImageTools = require('./structured/OpenAIImageTools');
 const TavilySearchResults = require('./structured/TavilySearchResults');
 const createGeminiImageTool = require('./structured/GeminiImageGen');
+const AdemeDPE = require('./structured/AdemeDPE');
+const BDNBBatiment = require('./structured/BDNB');
 
 module.exports = {
   ...manifest,
@@ -27,4 +29,6 @@ module.exports = {
   TavilySearchResults,
   createOpenAIImageTools,
   createGeminiImageTool,
+  AdemeDPE,
+  BDNBBatiment,
 };
