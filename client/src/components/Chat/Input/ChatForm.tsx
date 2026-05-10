@@ -158,8 +158,20 @@ const ChatForm = memo(function ChatForm({
 
   const { submitMessage, submitPrompt } = useSubmitMessage();
 
-  const { aiEnabled, toggleAI, pendingMessages, sendPendingQueue, queueSubmitting } =
+  const { aiEnabled, toggleAI, pendingMessages, addToPending, sendPendingQueue, queueSubmitting } =
     useAIToggle({ conversationId, index });
+
+  const handleSubmit = useCallback(
+    (data: { text: string }) => {
+      if (!aiEnabled) {
+        addToPending(data.text);
+        methods.reset();
+        return;
+      }
+      submitMessage(data);
+    },
+    [aiEnabled, addToPending, submitMessage, methods],
+  );
 
   const handleKeyUp = useHandleKeyUp({
     index,
@@ -232,7 +244,7 @@ const ChatForm = memo(function ChatForm({
 
   return (
     <form
-      onSubmit={methods.handleSubmit(submitMessage)}
+      onSubmit={methods.handleSubmit(handleSubmit)}
       className={cn(
         'mx-auto flex w-full flex-row gap-3 transition-[max-width] duration-300 sm:px-2',
         maximizeChatSpace ? 'max-w-full' : 'md:max-w-3xl xl:max-w-4xl',
@@ -386,7 +398,7 @@ const ChatForm = memo(function ChatForm({
               {SpeechToText && (
                 <AudioRecorder
                   methods={methods}
-                  ask={submitMessage}
+                  ask={handleSubmit}
                   textAreaRef={textAreaRef}
                   disabled={disableInputs || isNotAppendable}
                   isSubmitting={isSubmitting}
