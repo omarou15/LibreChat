@@ -72,7 +72,7 @@ bower_components/
 .flooignore
 
 #config file
-librechat.yaml
+# librechat.yaml — tracked intentionally (uses ${ENV_VAR} references, no secrets)
 librechat.yml
 
 # Environment
