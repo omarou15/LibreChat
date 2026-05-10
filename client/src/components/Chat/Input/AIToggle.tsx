@@ -5,24 +5,16 @@ import { cn } from '~/utils';
 
 type AIToggleProps = {
   aiEnabled: boolean;
-  isNewConvo: boolean;
   pendingCount: number;
   onToggle: () => void;
 };
 
-const AIToggle = React.memo(function AIToggle({
-  aiEnabled,
-  isNewConvo,
-  pendingCount,
-  onToggle,
-}: AIToggleProps) {
+const AIToggle = React.memo(function AIToggle({ aiEnabled, pendingCount, onToggle }: AIToggleProps) {
   const localize = useLocalize();
 
-  const tooltip = isNewConvo
-    ? localize('com_ui_ai_toggle_disabled_tooltip')
-    : aiEnabled
-      ? localize('com_ui_ai_toggle_tooltip_on')
-      : localize('com_ui_ai_toggle_tooltip_off');
+  const tooltip = aiEnabled
+    ? localize('com_ui_ai_toggle_tooltip_on')
+    : localize('com_ui_ai_toggle_tooltip_off');
 
   return (
     <TooltipAnchor
@@ -32,12 +24,10 @@ const AIToggle = React.memo(function AIToggle({
           type="button"
           aria-label={tooltip}
           aria-pressed={aiEnabled}
-          disabled={isNewConvo}
           onClick={onToggle}
           data-testid="ai-toggle-button"
           className={cn(
             'relative flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold transition-all duration-200',
-            'disabled:cursor-not-allowed disabled:opacity-40',
             aiEnabled
               ? 'border-green-500/40 bg-green-500/10 text-green-600 hover:bg-green-500/20 dark:text-green-400'
               : 'border-amber-500/40 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400',

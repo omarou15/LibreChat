@@ -14,8 +14,6 @@ export default function useAIToggle({ conversationId, index }: Params) {
   const isSubmitting = useRecoilValue(store.isSubmittingFamily(index));
   const latestMessage = useRecoilValue(store.latestMessageFamily(index));
 
-  const isNewConvo = conversationId === Constants.NEW_CONVO;
-
   const [aiEnabled, setAiEnabled] = useRecoilState(store.aiEnabledByConversation(conversationId));
   const [pendingMessages, setPendingMessages] = useRecoilState(
     store.pendingMessagesByConversation(conversationId),
@@ -87,12 +85,9 @@ export default function useAIToggle({ conversationId, index }: Params) {
 
   const toggleAI = useCallback(
     (value?: boolean) => {
-      if (isNewConvo) {
-        return;
-      }
       setAiEnabled((prev) => value ?? !prev);
     },
-    [isNewConvo, setAiEnabled],
+    [setAiEnabled],
   );
 
   return {
@@ -102,6 +97,5 @@ export default function useAIToggle({ conversationId, index }: Params) {
     addToPending,
     sendPendingQueue,
     queueSubmitting,
-    isNewConvo,
   };
 }

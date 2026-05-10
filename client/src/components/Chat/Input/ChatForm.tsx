@@ -158,7 +158,7 @@ const ChatForm = memo(function ChatForm({
 
   const { submitMessage, submitPrompt } = useSubmitMessage();
 
-  const { aiEnabled, toggleAI, pendingMessages, sendPendingQueue, queueSubmitting, isNewConvo } =
+  const { aiEnabled, toggleAI, pendingMessages, sendPendingQueue, queueSubmitting } =
     useAIToggle({ conversationId, index });
 
   const handleKeyUp = useHandleKeyUp({
@@ -366,7 +366,6 @@ const ChatForm = memo(function ChatForm({
                 />
                 <AIToggle
                   aiEnabled={aiEnabled}
-                  isNewConvo={isNewConvo}
                   pendingCount={pendingMessages.length}
                   onToggle={toggleAI}
                 />
