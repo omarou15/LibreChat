@@ -1728,6 +1728,6 @@
   "com_ui_ai_queue_files_excluded": "File attachments cannot be queued — text only",
   "com_ui_ai_queue_item": "Message {{0}}",
   "com_ui_ai_queue_submitting": "Sending to AI…",
-  "com_ui_ai_queue_empty_on_toggle": "AI re-enabled — no pending messages"
+  "com_ui_ai_queue_empty_on_toggle": "AI re-enabled — no pending messages",
   "com_user_message": "You"
 }
