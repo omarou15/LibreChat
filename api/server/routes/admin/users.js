@@ -1,10 +1,9 @@
 const express = require('express');
-const { createAdminUsersHandlers, checkEmailConfig } = require('@librechat/api');
+const { createAdminUsersHandlers, checkEmailConfig, createInvite } = require('@librechat/api');
 const { SystemCapabilities } = require('@librechat/data-schemas');
 const { requireCapability } = require('~/server/middleware/roles/capabilities');
 const { requireJwtAuth } = require('~/server/middleware');
 const { sendEmail } = require('~/server/utils');
-const { createInvite } = require('~/models/inviteUser');
 const db = require('~/models');
 
 const router = express.Router();
@@ -38,8 +37,12 @@ router.post('/invite', requireManageUsers, async (req, res) => {
     return res.status(409).json({ error: 'Un utilisateur avec cet email existe déjà' });
   }
 
-  const token = await createInvite(email);
-  if (!token || token.error) {
+  const token = await createInvite(email, {
+    createToken: db.createToken,
+    findToken: db.findToken,
+  });
+
+  if (!token || typeof token === 'object') {
     return res.status(500).json({ error: "Impossible de créer l'invitation" });
   }
 
