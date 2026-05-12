@@ -621,10 +621,14 @@ export default function useEventHandlers({
 
         if (setConversation && isAddedRequest !== true) {
           setConversation((prevState) => {
+            const serverTitle = (conversation as TConversation).title;
             const update = {
               ...prevState,
               ...(conversation as TConversation),
             };
+            if (!serverTitle && prevState?.title && prevState.title !== 'New Chat') {
+              update.title = prevState.title;
+            }
             if (prevState?.model != null && prevState.model !== submissionConvo.model) {
               update.model = prevState.model;
             }

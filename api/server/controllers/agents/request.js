@@ -12,7 +12,7 @@ const {
 const { disposeClient, clientRegistry, requestDataMap } = require('~/server/cleanup');
 const { handleAbortError } = require('~/server/middleware');
 const { logViolation } = require('~/cache');
-const { saveMessage, getConvo } = require('~/models');
+const { saveMessage, getConvo, saveConvo } = require('~/models');
 
 function createCloseHandler(abortController) {
   return function (manual) {
@@ -320,6 +320,17 @@ const ResumableAgentController = async (req, res, next, initializeClient, addTit
           isNewConvo &&
           !wasAbortedBeforeComplete &&
           !hasCustomTitle;
+
+        if (hasCustomTitle && conversation.conversationId) {
+          conversation.title = req.body.title;
+          saveConvo(
+            { userId: req?.user?.id, isTemporary: req?.body?.isTemporary },
+            { conversationId: conversation.conversationId, title: req.body.title },
+            { context: 'agents/request.js - custom title' },
+          ).catch((err) => {
+            logger.warn('[ResumableAgentController] Failed to save custom title', err);
+          });
+        }
 
         // Save user message BEFORE sending final event to avoid race condition
         // where client refetch happens before database is updated

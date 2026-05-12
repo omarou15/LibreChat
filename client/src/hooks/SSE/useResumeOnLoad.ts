@@ -132,76 +132,36 @@ export default function useResumeOnLoad(
   } = useStreamStatus(conversationId, shouldCheck);
 
   useEffect(() => {
-    console.log('[ResumeOnLoad] Effect check', {
-      resumableEnabled,
-      conversationId,
-      messagesLoaded,
-      hasCurrentSubmission: !!currentSubmission,
-      currentSubmissionConvoId: currentSubmission?.conversation?.conversationId,
-      isSuccess,
-      isFetching,
-      streamStatusActive: streamStatus?.active,
-      streamStatusStreamId: streamStatus?.streamId,
-      processedConvoRef: processedConvoRef.current,
-    });
-
     if (!resumableEnabled || !conversationId || conversationId === Constants.NEW_CONVO) {
-      console.log('[ResumeOnLoad] Skipping - not enabled or new convo');
       return;
     }
 
-    // Wait for messages to load to avoid race condition where sync overwrites then DB overwrites
     if (!messagesLoaded) {
-      console.log('[ResumeOnLoad] Waiting for messages to load');
       return;
     }
 
-    // Don't resume if we already have an active submission FOR THIS CONVERSATION
-    // A stale submission with undefined/different conversationId should not block us
     if (hasActiveSubmissionForThisConvo) {
-      console.log('[ResumeOnLoad] Skipping - already have active submission for this conversation');
       // Mark as processed so we don't try again
       processedConvoRef.current = conversationId;
       return;
     }
 
-    // If there's a stale submission for a different conversation, log it but continue
-    if (currentSubmission && submissionConvoId !== conversationId) {
-      console.log(
-        '[ResumeOnLoad] Found stale submission for different conversation, will check for resume',
-        {
-          staleConvoId: submissionConvoId,
-          currentConvoId: conversationId,
-        },
-      );
-    }
-
     // Wait for stream status query to complete (including background refetches
     // that may replace a stale cached result with fresh data)
     if (!isSuccess || !streamStatus || isFetching) {
-      console.log('[ResumeOnLoad] Waiting for stream status query');
       return;
     }
 
-    // Don't process the same conversation twice
     if (processedConvoRef.current === conversationId) {
-      console.log('[ResumeOnLoad] Skipping - already processed this conversation');
       return;
     }
 
     if (!streamStatus.active || !streamStatus.streamId) {
-      console.log('[ResumeOnLoad] No active job to resume for:', conversationId);
       processedConvoRef.current = conversationId;
       return;
     }
 
     processedConvoRef.current = conversationId;
-
-    console.log('[ResumeOnLoad] Found active job, creating submission...', {
-      streamId: streamStatus.streamId,
-      status: streamStatus.status,
-      resumeState: streamStatus.resumeState,
-    });
 
     const messages = getMessages() || [];
 
@@ -250,14 +210,8 @@ export default function useResumeOnLoad(
     setSubmission,
   ]);
 
-  // Reset processedConvoRef when conversation changes to allow re-checking
   useEffect(() => {
-    // Always reset when conversation changes - this allows resuming when navigating back
     if (conversationId !== processedConvoRef.current) {
-      console.log('[ResumeOnLoad] Resetting processedConvoRef for new conversation:', {
-        old: processedConvoRef.current,
-        new: conversationId,
-      });
       processedConvoRef.current = null;
     }
   }, [conversationId]);

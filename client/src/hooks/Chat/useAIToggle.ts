@@ -140,7 +140,6 @@ export default function useAIToggle({ conversationId, index }: Params) {
 
   return {
     aiEnabled,
-    isOnline,
     toggleAI,
     pendingMessages,
     addToPending,

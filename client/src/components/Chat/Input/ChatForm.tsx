@@ -169,12 +169,12 @@ const ChatForm = memo(function ChatForm({
 
   const { submitMessage, submitPrompt } = useSubmitMessage();
 
-  const { aiEnabled, isOnline, toggleAI, pendingMessages, addToPending, sendPendingQueue, queueSubmitting } =
+  const { aiEnabled, toggleAI, pendingMessages, addToPending, sendPendingQueue, queueSubmitting } =
     useAIToggle({ conversationId, index });
 
   const handleSubmit = useCallback(
     (data: { text: string }) => {
-      if (!aiEnabled || !isOnline) {
+      if (!aiEnabled) {
         if (files.size > 0) {
           return;
         }
@@ -184,7 +184,7 @@ const ChatForm = memo(function ChatForm({
       }
       submitMessage(data);
     },
-    [aiEnabled, isOnline, files, addToPending, submitMessage, methods],
+    [aiEnabled, files, addToPending, submitMessage, methods],
   );
 
   const handleKeyUp = useHandleKeyUp({
@@ -392,7 +392,6 @@ const ChatForm = memo(function ChatForm({
                 />
                 <AIToggle
                   aiEnabled={aiEnabled}
-                  isOnline={isOnline}
                   pendingCount={pendingMessages.length}
                   onToggle={toggleAI}
                 />
