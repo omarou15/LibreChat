@@ -7,7 +7,7 @@ const VISITS_DIR = path.join(__dirname, '..', '..', '..', '..', '..', 'data', 'v
 /* Per-file cooldown: tracks { action, ts } of the last call.
  * If the exact same (file, action) was executed within COOLDOWN_MS, skip it
  * and return a short-circuit message so the LLM doesn't loop. */
-const COOLDOWN_MS = 8000;
+const COOLDOWN_MS = 120000;
 const lastCall = new Map(); // key: `${safe}:${action}` → timestamp
 
 const visitFileSchema = {
