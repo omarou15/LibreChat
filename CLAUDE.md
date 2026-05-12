@@ -175,6 +175,18 @@ Fix all formatting lint errors (trailing spaces, tabs, newlines, indentation) us
 
 ---
 
+## Règles de collaboration — répartition des rôles
+
+**Utilisateur** : remonte les problèmes terrain + modifie le system prompt dans l'UI LibreChat.
+
+**Claude** : tout le reste — diagnostic, code, commit, push, déploiement Railway. Sans demander de confirmation.
+
+- Quand un bug est signalé → diagnostiquer, corriger, committer, pusher sur `main` (Railway écoute `main`)
+- Ne jamais demander à l'utilisateur de merger ou de pousser
+- Le system prompt (`data/visite-technique-system-prompt.md`) est dans `.gitignore` — non commité, copié manuellement dans l'UI après modification
+
+---
+
 ## Fork EnergyCo — Maintenabilité upstream
 
 Ce projet est un fork de LibreChat avec des features métier (audit énergétique). L'objectif est de pouvoir merger les mises à jour upstream sans conflits majeurs.
