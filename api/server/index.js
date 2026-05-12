@@ -106,6 +106,29 @@ const startServer = async () => {
 
   app.get('/health', (_req, res) => res.status(200).send('OK'));
 
+  /** SW cache reset — served at root level, bypasses both the service worker and API middleware */
+  app.get('/sw-clear', (_req, res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    res.send(`<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>SW Reset</title></head><body>
+<p id="s">Purge du cache...</p>
+<script>
+(async () => {
+  const s = document.getElementById('s');
+  if (!('serviceWorker' in navigator)) { s.textContent = 'Pas de SW enregistré.'; return; }
+  const regs = await navigator.serviceWorker.getRegistrations();
+  await Promise.all(regs.map(r => r.unregister()));
+  const keys = await caches.keys();
+  await Promise.all(keys.map(k => caches.delete(k)));
+  s.textContent = regs.length
+    ? regs.length + ' SW supprimé(s) — redirection...'
+    : 'Aucun SW — cache vidé — redirection...';
+  setTimeout(() => { window.location.replace('/'); }, 1200);
+})();
+</script></body></html>`);
+  });
+
   /* Middleware */
   app.use(noIndex);
   app.use(express.json({ limit: '3mb' }));
@@ -199,29 +222,6 @@ const startServer = async () => {
   app.use('/api/tags', routes.tags);
   app.use('/api/mcp', routes.mcp);
   app.use('/api/visits', routes.visits);
-
-  /** One-shot SW cache reset — served directly (bypasses service worker) */
-  app.get('/api/sw-clear', (req, res) => {
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-    res.set('Content-Type', 'text/html; charset=utf-8');
-    res.send(`<!DOCTYPE html><html><head><meta charset="utf-8">
-<title>SW Reset</title></head><body>
-<p id="s">Purge du cache...</p>
-<script>
-(async () => {
-  const s = document.getElementById('s');
-  if (!('serviceWorker' in navigator)) { s.textContent = 'Pas de SW enregistré.'; return; }
-  const regs = await navigator.serviceWorker.getRegistrations();
-  await Promise.all(regs.map(r => r.unregister()));
-  const keys = await caches.keys();
-  await Promise.all(keys.map(k => caches.delete(k)));
-  s.textContent = regs.length
-    ? regs.length + ' SW supprimé(s) — redirection...'
-    : 'Aucun SW — cache vidé — redirection...';
-  setTimeout(() => { window.location.replace('/'); }, 1200);
-})();
-</script></body></html>`);
-  });
 
   /** 404 for unmatched API routes */
   app.use('/api', apiNotFound);
