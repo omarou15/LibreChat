@@ -74,18 +74,7 @@ export default defineConfig(({ command }) => ({
       useCredentials: true,
       includeManifestIcons: false,
       workbox: {
-        globPatterns: [
-          '**/*.{js,css,html}',
-          'assets/favicon*.png',
-          'assets/icon-*.png',
-          'assets/apple-touch-icon*.png',
-          'assets/maskable-icon.png',
-          'manifest.webmanifest',
-        ],
-        globIgnores: ['images/**/*', '**/*.map'],
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/oauth/, /^\/api/],
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        selfDestroying: true,
       },
       includeAssets: [],
       manifest: {
