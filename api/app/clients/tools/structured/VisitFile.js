@@ -85,7 +85,7 @@ class VisitFile extends Tool {
     super(fields);
     this.name = 'visit_file';
     this.description =
-      "Gère le fichier JSON de la visite technique en cours. Utilise 'write' pour initialiser ou réécrire le JSON complet, 'read' pour vérifier l'état actuel, 'patch' pour mettre à jour un champ précis. Appelle cet outil naturellement au fil de la conversation pour construire progressivement le rapport.";
+      "Gère le fichier JSON de la visite technique en cours. RÈGLE ABSOLUE : quand l'utilisateur fournit plusieurs informations en même temps (liste de données, résumé de visite, etc.), tu DOIS regrouper TOUTES ces données en UN SEUL appel 'write'. N'appelle JAMAIS ce tool plusieurs fois de suite pour le même message utilisateur. Utilise 'patch' uniquement pour mettre à jour UN seul champ dans un message ultérieur. Utilise 'read' uniquement si l'utilisateur demande explicitement à voir les données.";
     this.schema = visitFileSchema;
   }
 
