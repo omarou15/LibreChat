@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { useChatContext } from '~/Providers';
 import store from '~/store';
@@ -21,8 +21,49 @@ export default function useAIToggle({ conversationId, index }: Params) {
     store.queueSubmittingByConversation(conversationId),
   );
 
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+
   const prevIsSubmittingRef = useRef(false);
   const prevMessageIdRef = useRef<string | undefined>(undefined);
+  const aiEnabledRef = useRef(aiEnabled);
+  aiEnabledRef.current = aiEnabled;
+
+  const storageKey = `librechat:pending:${conversationId}`;
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (!saved) {
+      return;
+    }
+    try {
+      const parsed: unknown = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setPendingMessages(parsed as string[]);
+      }
+    } catch {
+      // ignore malformed storage
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (pendingMessages.length > 0) {
+      localStorage.setItem(storageKey, JSON.stringify(pendingMessages));
+    } else {
+      localStorage.removeItem(storageKey);
+    }
+  }, [pendingMessages, storageKey]);
 
   /**
    * Clear the queue only after a confirmed assistant response.
@@ -82,6 +123,14 @@ export default function useAIToggle({ conversationId, index }: Params) {
     setQueueSubmitting,
   ]);
 
+  useEffect(() => {
+    if (!isOnline || !aiEnabledRef.current) {
+      return;
+    }
+    sendPendingQueue();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline]);
+
   const toggleAI = useCallback(
     (value?: boolean) => {
       setAiEnabled((prev) => value ?? !prev);
@@ -91,6 +140,7 @@ export default function useAIToggle({ conversationId, index }: Params) {
 
   return {
     aiEnabled,
+    isOnline,
     toggleAI,
     pendingMessages,
     addToPending,

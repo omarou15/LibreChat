@@ -543,7 +543,7 @@ export default function useEventHandlers({
         const isNewConvo = conversation.conversationId !== submissionConvo.conversationId;
 
         if (isNewConvo && conversation.conversationId) {
-          queueTitleGeneration(conversation.conversationId);
+          queueTitleGeneration(conversation.conversationId, conversation.title ?? undefined);
         }
 
         const setFinalMessages = (id: string | null, _messages: TMessage[]) => {

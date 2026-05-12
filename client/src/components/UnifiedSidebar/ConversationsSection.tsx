@@ -15,6 +15,8 @@ import {
 import { useConversationsInfiniteQuery, useTitleGeneration } from '~/data-provider';
 import { Conversations } from '~/components/Conversations';
 import SearchBar from '~/components/Nav/SearchBar';
+import VisitFilters, { parseVisitMission } from './VisitFilters';
+import type { VisitMission } from './VisitFilters';
 import store from '~/store';
 
 const BookmarkNav = lazy(() => import('~/components/Nav/Bookmarks/BookmarkNav'));
@@ -29,6 +31,7 @@ const ConversationsSection = memo(() => {
   const [isChatsExpanded, setIsChatsExpanded] = useLocalStorage('chatsExpanded', true);
   const [showLoading, setShowLoading] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
+  const [missionFilter, setMissionFilter] = useState<VisitMission | null>(null);
 
   const hasAccessToBookmarks = useHasAccess({
     permissionType: PermissionTypes.BOOKMARKS,
@@ -71,9 +74,24 @@ const ConversationsSection = memo(() => {
     isFetchingNext: isFetchingNextPage,
   });
 
+  const allConversations = useMemo(
+    () => (data ? data.pages.flatMap((page) => page.conversations) : []),
+    [data],
+  );
+
+  const availableMissions = useMemo(() => {
+    const set = new Set<VisitMission>();
+    for (const c of allConversations) {
+      const m = parseVisitMission(c.title ?? '');
+      if (m) set.add(m);
+    }
+    return set;
+  }, [allConversations]);
+
   const conversations = useMemo(() => {
-    return data ? data.pages.flatMap((page) => page.conversations) : [];
-  }, [data]);
+    if (!missionFilter) return allConversations;
+    return allConversations.filter((c) => parseVisitMission(c.title ?? '') === missionFilter);
+  }, [allConversations, missionFilter]);
 
   const toggleNav = useCallback(() => {
     if (isSmallScreen) {
@@ -116,6 +134,11 @@ const ConversationsSection = memo(() => {
         )}
         {search.enabled && <SearchBar isSmallScreen={isSmallScreen} />}
       </div>
+      <VisitFilters
+        active={missionFilter}
+        available={availableMissions}
+        onChange={setMissionFilter}
+      />
       <div className="flex min-h-0 flex-grow flex-col overflow-hidden">
         <Conversations
           conversations={conversations}

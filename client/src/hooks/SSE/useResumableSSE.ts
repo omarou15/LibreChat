@@ -568,6 +568,11 @@ export default function useResumableSSE(
       let { payload } = payloadData;
       payload = removeNullishValues(payload) as TPayload;
 
+      const convoTitle = currentSubmission.conversation?.title;
+      if (convoTitle && convoTitle !== 'New Chat') {
+        (payload as Record<string, unknown>).title = convoTitle;
+      }
+
       clearStepMaps();
 
       const url = payloadData.server;
@@ -674,7 +679,7 @@ export default function useResumableSSE(
           // Queue title generation if this is a new conversation (first message)
           const isNewConvo = submission.userMessage?.parentMessageId === Constants.NO_PARENT;
           if (isNewConvo) {
-            queueTitleGeneration(newStreamId);
+            queueTitleGeneration(newStreamId, submission.conversation?.title ?? undefined);
           }
           subscribeToStream(newStreamId, submission);
         } else {

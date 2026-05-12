@@ -313,11 +313,13 @@ const ResumableAgentController = async (req, res, next, initializeClient, addTit
 
         // Check abort state BEFORE calling completeJob (which triggers abort signal for cleanup)
         const wasAbortedBeforeComplete = job.abortController.signal.aborted;
+        const hasCustomTitle = req.body.title && req.body.title !== 'New Chat';
         const shouldGenerateTitle =
           addTitle &&
           parentMessageId === Constants.NO_PARENT &&
           isNewConvo &&
-          !wasAbortedBeforeComplete;
+          !wasAbortedBeforeComplete &&
+          !hasCustomTitle;
 
         // Save user message BEFORE sending final event to avoid race condition
         // where client refetch happens before database is updated

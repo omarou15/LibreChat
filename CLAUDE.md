@@ -24,6 +24,7 @@ The source code for `@librechat/agents` (major backend dependency, same team) is
 - Database-specific shared logic goes in `/packages/data-schemas`.
 - Frontend/backend shared API logic (endpoints, types, data-service) goes in `/packages/data-provider`.
 - Build data-provider from project root: `npm run build:data-provider`.
+- **After any change to `packages/api/src/**/*.ts`** (e.g. `definitions.ts`, tool registrations), rebuild the package before restarting the backend: `cd packages/api && npm run build`. The backend loads `packages/api/dist/index.js` at startup — if the dist is stale, changes are silently ignored and tools will not be available to agents.
 
 ---
 
@@ -146,6 +147,7 @@ Multi-line imports count total character length across all lines. Consolidate va
 - Node.js: v20.19.0+ or ^22.12.0 or >= 23.0.0
 - Database: MongoDB
 - Backend runs on `http://localhost:3080/`; frontend dev server on `http://localhost:3090/`
+- **Port 3080 already in use (`EADDRINUSE`)** — happens frequently when an old node process is still running. Fix: kill the process holding the port, then restart nodemon with `rs`. PowerShell one-liner: `$p = (Get-NetTCPConnection -LocalPort 3080 -State Listen).OwningProcess; Stop-Process -Id $p -Force`
 
 ---
 

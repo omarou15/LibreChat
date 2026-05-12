@@ -1,5 +1,12 @@
 [
   {
+    "name": "Visite Technique",
+    "pluginKey": "visit_file",
+    "description": "Gère le fichier JSON de la visite technique — write (créer/réécrire), read (lire), patch (mettre à jour un champ). Permet de construire progressivement le rapport de visite au fil de la conversation.",
+    "icon": "assets/logo.png",
+    "authConfig": []
+  },
+  {
     "name": "ADEME DPE",
     "pluginKey": "ademe_dpe",
     "description": "Recherche les Diagnostics de Performance Énergétique (DPE) ADEME pour une adresse. Retourne étiquette énergie/GES, surface, année de construction, systèmes de chauffage, ECS, ventilation et isolation.",

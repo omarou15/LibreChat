@@ -1,15 +1,17 @@
-import { memo, useCallback, lazy, Suspense } from 'react';
+import { memo, useCallback, lazy, Suspense, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { SquarePen } from 'lucide-react';
 import { QueryKeys } from 'librechat-data-provider';
 import { Skeleton, Sidebar, Button, TooltipAnchor } from '@librechat/client';
 import type { NavLink } from '~/common';
 import { CLOSE_SIDEBAR_ID } from '~/components/Chat/Menus/OpenSidebar';
 import { useActivePanel, resolveActivePanel, DEFAULT_PANEL } from '~/Providers';
+import { markNextConvoAsManual } from '~/data-provider';
 import { useLocalize, useNewConvo } from '~/hooks';
 import { clearMessagesCache, cn } from '~/utils';
 import store from '~/store';
+import VisitSetupModal from '~/components/Nav/VisitSetupModal';
 
 const AccountSettings = lazy(() => import('~/components/Nav/AccountSettings'));
 
@@ -23,38 +25,57 @@ const NewChatButton = memo(function NewChatButton({
   const { newConversation } = useNewConvo();
   const conversation = useRecoilValue(store.conversationByIndex(0));
   const switchToHistory = useRecoilValue(store.newChatSwitchToHistory);
+  const setText = useSetRecoilState(store.textByIndex(0));
+  const [modalOpen, setModalOpen] = useState(false);
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>) => {
       if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
-        clearMessagesCache(queryClient, conversation?.conversationId);
-        queryClient.invalidateQueries([QueryKeys.messages]);
-        newConversation();
-        if (switchToHistory) {
-          setActive(DEFAULT_PANEL);
-        }
+        setModalOpen(true);
       }
     },
-    [queryClient, conversation?.conversationId, newConversation, switchToHistory, setActive],
+    [],
+  );
+
+  const handleVisitSubmit = useCallback(
+    ({ title, message }: { title: string; message: string }) => {
+      if (title) markNextConvoAsManual();
+      clearMessagesCache(queryClient, conversation?.conversationId);
+      queryClient.invalidateQueries([QueryKeys.messages]);
+      newConversation(title ? { template: { title } } : {});
+      if (message) setText(message);
+      if (switchToHistory) {
+        setActive(DEFAULT_PANEL);
+      }
+      setModalOpen(false);
+    },
+    [queryClient, conversation?.conversationId, newConversation, switchToHistory, setActive, setText],
   );
 
   return (
-    <TooltipAnchor
-      side="right"
-      description={localize('com_ui_new_chat')}
-      render={
-        <a
-          href="/c/new"
-          data-testid="new-chat-button"
-          aria-label={localize('com_ui_new_chat')}
-          className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-surface-hover"
-          onClick={handleClick}
-        >
-          <SquarePen className="h-5 w-5 text-text-primary" />
-        </a>
-      }
-    />
+    <>
+      <VisitSetupModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleVisitSubmit}
+      />
+      <TooltipAnchor
+        side="right"
+        description={localize('com_ui_new_chat')}
+        render={
+          <a
+            href="/c/new"
+            data-testid="new-chat-button"
+            aria-label={localize('com_ui_new_chat')}
+            className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-surface-hover"
+            onClick={handleClick}
+          >
+            <SquarePen className="h-5 w-5 text-text-primary" />
+          </a>
+        }
+      />
+    </>
   );
 });
 

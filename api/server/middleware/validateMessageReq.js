@@ -18,10 +18,6 @@ const validateMessageReq = async (req, res, next) => {
     return res.status(404).json({ error: 'Conversation not found' });
   }
 
-  if (conversation.user !== req.user.id) {
-    return res.status(403).json({ error: 'User not authorized for this conversation' });
-  }
-
   next();
 };
 

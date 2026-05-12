@@ -381,8 +381,46 @@ export const bdnbBatimentSchema: ExtendedJsonSchema = {
   required: ['address'],
 };
 
+/** visit_file tool JSON schema */
+export const visitFileSchema: ExtendedJsonSchema = {
+  type: 'object',
+  properties: {
+    action: {
+      type: 'string',
+      enum: ['write', 'read', 'patch'],
+      description:
+        "write = créer ou remplacer le JSON complet. read = lire l'état actuel. patch = mettre à jour un champ précis via dot-notation.",
+    },
+    filename: {
+      type: 'string',
+      minLength: 1,
+      description:
+        "Nom du fichier sans extension (ex: visite-10-rue-victor-hugo-paris-2025-01-15).",
+    },
+    content: {
+      type: 'object',
+      description: '[write] Objet JSON complet à écrire dans le fichier.',
+    },
+    path: {
+      type: 'string',
+      description: '[patch] Chemin dot-notation vers le champ (ex: "logement.surface_habitable").',
+    },
+    value: {
+      description: '[patch] Valeur à définir — string, number, boolean, array ou object.',
+    },
+  },
+  required: ['action', 'filename'],
+};
+
 /** Tool definitions registry - maps tool names to their definitions */
 export const toolDefinitions: Record<string, ToolRegistryDefinition> = {
+  visit_file: {
+    name: 'visit_file',
+    description:
+      "Gère le fichier JSON de la visite technique en cours. Utilise 'write' pour initialiser ou réécrire le JSON complet, 'read' pour vérifier l'état actuel, 'patch' pour mettre à jour un champ précis. Appelle cet outil naturellement au fil de la conversation pour construire progressivement le rapport.",
+    schema: visitFileSchema,
+    toolType: 'builtin',
+  },
   ademe_dpe: {
     name: 'ademe_dpe',
     description:

@@ -14,6 +14,7 @@ const TavilySearchResults = require('./structured/TavilySearchResults');
 const createGeminiImageTool = require('./structured/GeminiImageGen');
 const AdemeDPE = require('./structured/AdemeDPE');
 const BDNBBatiment = require('./structured/BDNB');
+const VisitFile = require('./structured/VisitFile');
 
 module.exports = {
   ...manifest,
@@ -31,4 +32,5 @@ module.exports = {
   createGeminiImageTool,
   AdemeDPE,
   BDNBBatiment,
+  VisitFile,
 };

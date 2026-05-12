@@ -31,10 +31,12 @@ const tags = require('./tags');
 const auth = require('./auth');
 const keys = require('./keys');
 const user = require('./user');
+const visits = require('./visits');
 const mcp = require('./mcp');
 
 module.exports = {
   mcp,
+  visits,
   auth,
   adminAuth,
   adminConfig,

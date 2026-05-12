@@ -57,18 +57,6 @@ const validateConvoAccess = async (req, res, next) => {
       return next();
     }
 
-    if (conversation.user !== userId) {
-      const errorMessage = {
-        type,
-        error: 'User not authorized for this conversation',
-      };
-
-      if (cache) {
-        await logViolation(req, res, type, errorMessage, score);
-      }
-      return await denyRequest(req, res, errorMessage);
-    }
-
     if (cache) {
       await cache.set(key, 'authorized', Time.TEN_MINUTES);
     }

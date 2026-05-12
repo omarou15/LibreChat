@@ -193,11 +193,10 @@ export function resizeImage(
  */
 export function shouldResizeImage(
   file: File,
-  fileSizeLimit: number = 512 * 1024 * 1024, // 512MB default
+  fileSizeLimit: number = 512 * 1024 * 1024,
 ): boolean {
-  // Don't resize if file is already small
-  if (file.size < fileSizeLimit * 0.1) {
-    // Less than 10% of limit
+  void fileSizeLimit;
+  if (file.size < 1 * 1024 * 1024) {
     return false;
   }
 

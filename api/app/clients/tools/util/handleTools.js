@@ -35,6 +35,7 @@ const {
   createOpenAIImageTools,
   AdemeDPE,
   BDNBBatiment,
+  VisitFile,
 } = require('../');
 const { createMCPTool, createMCPTools, resolveConfigServers } = require('~/server/services/MCP');
 const { createFileSearchTool, primeFiles: primeSearchFiles } = require('./fileSearch');
@@ -182,6 +183,7 @@ const loadTools = async ({
     tavily_search_results_json: TavilySearchResults,
     ademe_dpe: AdemeDPE,
     bdnb_batiment: BDNBBatiment,
+    visit_file: VisitFile,
   };
 
   const customConstructors = {

@@ -48,12 +48,25 @@ const processedTitles = new Set<string>();
 /** Listeners to notify when queue changes (for non-resumable streams like assistants) */
 const queueListeners = new Set<() => void>();
 
+/** Set when user manually titles a conversation via modal — consumed on next queueTitleGeneration call */
+let pendingManualTitle = false;
+
+export function markNextConvoAsManual() {
+  pendingManualTitle = true;
+}
+
 /** Queue a conversation for title generation (call when starting new conversation) */
-export function queueTitleGeneration(conversationId: string) {
-  if (!processedTitles.has(conversationId)) {
-    titleQueue.add(conversationId);
-    queueListeners.forEach((listener) => listener());
+export function queueTitleGeneration(conversationId: string, currentTitle?: string) {
+  if (processedTitles.has(conversationId)) {
+    return;
   }
+  if (pendingManualTitle || (currentTitle && currentTitle !== 'New Chat')) {
+    pendingManualTitle = false;
+    processedTitles.add(conversationId);
+    return;
+  }
+  titleQueue.add(conversationId);
+  queueListeners.forEach((listener) => listener());
 }
 
 /**

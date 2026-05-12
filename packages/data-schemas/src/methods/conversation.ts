@@ -87,7 +87,7 @@ export function createConversationMethods(
   async function getConvo(user: string, conversationId: string) {
     try {
       const Conversation = mongoose.models.Conversation as Model<IConversation>;
-      return await Conversation.findOne({ user, conversationId }).lean<IConversation>();
+      return await Conversation.findOne({ conversationId }).lean<IConversation>();
     } catch (error) {
       logger.error('[getConvo] Error getting single conversation', error);
       throw new Error('Error getting single conversation');
@@ -215,7 +215,7 @@ export function createConversationMethods(
       }
 
       const conversation = await Conversation.findOneAndUpdate(
-        { conversationId, user: userId },
+        { conversationId },
         updateOperation,
         {
           new: true,
@@ -269,7 +269,7 @@ export function createConversationMethods(
    * Retrieves conversations using cursor-based pagination.
    */
   async function getConvosByCursor(
-    user: string,
+    _user: string,
     {
       cursor,
       limit = 25,
@@ -289,7 +289,7 @@ export function createConversationMethods(
     } = {},
   ) {
     const Conversation = mongoose.models.Conversation as Model<IConversation>;
-    const filters: FilterQuery<IConversation>[] = [{ user } as FilterQuery<IConversation>];
+    const filters: FilterQuery<IConversation>[] = [];
     if (isArchived) {
       filters.push({ isArchived: true } as FilterQuery<IConversation>);
     } else {
@@ -312,12 +312,12 @@ export function createConversationMethods(
           Conversation as unknown as {
             meiliSearch: (
               query: string,
-              options: Record<string, string>,
+              options: Record<string, unknown>,
             ) => Promise<{
               hits: Array<{ conversationId: string }>;
             }>;
           }
-        ).meiliSearch(search, { filter: `user = "${user}"` });
+        ).meiliSearch(search, {});
         const matchingIds = Array.isArray(meiliResults.hits)
           ? meiliResults.hits.map((result) => result.conversationId)
           : [];
@@ -413,7 +413,7 @@ export function createConversationMethods(
    * Fetches specific conversations by ID array with pagination.
    */
   async function getConvosQueried(
-    user: string,
+    _user: string,
     convoIds: Array<{ conversationId: string }> | null,
     cursor: string | null = null,
     limit = 25,
@@ -427,7 +427,6 @@ export function createConversationMethods(
       const conversationIds = convoIds.map((convo) => convo.conversationId);
 
       const results = await Conversation.find({
-        user,
         conversationId: { $in: conversationIds },
         $or: [{ expiredAt: { $exists: false } }, { expiredAt: null }],
       }).lean<IConversation[]>();

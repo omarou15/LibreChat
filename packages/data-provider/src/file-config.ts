@@ -430,10 +430,10 @@ export const fileConfig = {
   avatarSizeLimit: mbToBytes(2),
   fileTokenLimit: defaultTokenLimit,
   clientImageResize: {
-    enabled: false,
+    enabled: true,
     maxWidth: 1900,
     maxHeight: 1900,
-    quality: 0.92,
+    quality: 0.85,
   },
   ocr: {
     supportedMimeTypes: defaultOCRMimeTypes,

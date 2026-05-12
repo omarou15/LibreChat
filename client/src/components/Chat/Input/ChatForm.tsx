@@ -40,6 +40,7 @@ import Mention from './Mention';
 import AIToggle from './AIToggle';
 import PendingQueue from './PendingQueue';
 import FieldToolsButton from '~/components/FieldTools/FieldToolsButton';
+import VisitDownloadButton from './VisitDownloadButton';
 import useAIToggle from '~/hooks/Chat/useAIToggle';
 import store from '~/store';
 
@@ -85,6 +86,8 @@ const ChatForm = memo(function ChatForm({
   const maximizeChatSpace = useRecoilValue(store.maximizeChatSpace);
   const centerFormOnLanding = useRecoilValue(store.centerFormOnLanding);
   const isTemporary = useRecoilValue(store.isTemporary);
+
+  const [pendingInputText, setPendingInputText] = useRecoilState(store.textByIndex(index));
 
   const [badges, setBadges] = useRecoilState(store.chatBadges);
   const [isEditingBadges, setIsEditingBadges] = useRecoilState(store.isEditingBadges);
@@ -156,6 +159,13 @@ const ChatForm = memo(function ChatForm({
     conversationId,
     isSubmitting,
   });
+
+  useEffect(() => {
+    if (!pendingInputText) return;
+    methods.setValue('text', pendingInputText, { shouldValidate: true });
+    setPendingInputText('');
+    textAreaRef.current?.focus();
+  }, [pendingInputText, methods, setPendingInputText]);
 
   const { submitMessage, submitPrompt } = useSubmitMessage();
 
@@ -387,6 +397,7 @@ const ChatForm = memo(function ChatForm({
                   onToggle={toggleAI}
                 />
                 <FieldToolsButton />
+                <VisitDownloadButton conversationId={conversationId} />
               </div>
               <BadgeRow
                 showEphemeralBadges={
