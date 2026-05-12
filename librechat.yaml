@@ -12,6 +12,7 @@ interface:
 endpoints:
   agents:
     disableBuilder: false
+    resendFiles: false
     capabilities:
       - tools
       - actions
