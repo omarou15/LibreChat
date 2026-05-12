@@ -181,8 +181,9 @@ Fix all formatting lint errors (trailing spaces, tabs, newlines, indentation) us
 
 **Claude** : tout le reste — diagnostic, code, commit, push, déploiement Railway. Sans demander de confirmation.
 
-- Quand un bug est signalé → diagnostiquer, corriger, committer, pusher sur `main` (Railway écoute `main`)
+- Quand un bug est signalé → diagnostiquer, corriger, committer, pusher sur `main`, puis lancer `railway up --service LibreChat --detach`
 - Ne jamais demander à l'utilisateur de merger ou de pousser
+- Railway n'auto-déploie pas depuis GitHub — toujours déclencher via CLI : `cd C:\Users\omaro\LibreChat-deploy && railway up --service LibreChat --detach`
 - Le system prompt (`data/visite-technique-system-prompt.md`) est dans `.gitignore` — non commité, copié manuellement dans l'UI après modification
 
 ---
