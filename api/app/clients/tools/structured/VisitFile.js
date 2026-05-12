@@ -4,6 +4,12 @@ const path = require('path');
 
 const VISITS_DIR = path.join(__dirname, '..', '..', '..', '..', '..', 'data', 'visits');
 
+/* Per-file cooldown: tracks { action, ts } of the last call.
+ * If the exact same (file, action) was executed within COOLDOWN_MS, skip it
+ * and return a short-circuit message so the LLM doesn't loop. */
+const COOLDOWN_MS = 8000;
+const lastCall = new Map(); // key: `${safe}:${action}` → timestamp
+
 const visitFileSchema = {
   type: 'object',
   properties: {
@@ -63,7 +69,6 @@ function deepSet(obj, dotPath, value) {
     if (cur == null) {
       node[parts[i]] = {};
     } else if (typeof cur === 'string') {
-      // LLM may have stored a JSON-stringified object — recover it
       node[parts[i]] = tryParseJson(cur) ?? {};
       if (typeof node[parts[i]] !== 'object') node[parts[i]] = {};
     }
@@ -85,7 +90,7 @@ class VisitFile extends Tool {
     super(fields);
     this.name = 'visit_file';
     this.description =
-      "Gère le fichier JSON de la visite technique en cours. RÈGLE ABSOLUE : quand l'utilisateur fournit plusieurs informations en même temps (liste de données, résumé de visite, etc.), tu DOIS regrouper TOUTES ces données en UN SEUL appel 'write'. N'appelle JAMAIS ce tool plusieurs fois de suite pour le même message utilisateur. Utilise 'patch' uniquement pour mettre à jour UN seul champ dans un message ultérieur. Utilise 'read' uniquement si l'utilisateur demande explicitement à voir les données.";
+      "Gère le fichier JSON de la visite technique en cours. RÈGLE ABSOLUE : quand l'utilisateur fournit plusieurs informations en même temps, regroupe TOUT en UN SEUL appel 'write'. N'appelle JAMAIS ce tool plusieurs fois de suite pour le même message. 'patch' = un seul champ à la fois dans un message ultérieur. 'read' = uniquement si l'utilisateur le demande explicitement.";
     this.schema = visitFileSchema;
   }
 
@@ -96,6 +101,18 @@ class VisitFile extends Tool {
     if (!safe) {
       return JSON.stringify({ error: 'Nom de fichier invalide' });
     }
+
+    const cooldownKey = `${safe}:${action}`;
+    const now = Date.now();
+    const last = lastCall.get(cooldownKey);
+    if (last && now - last < COOLDOWN_MS) {
+      return JSON.stringify({
+        skipped: true,
+        reason: `Opération '${action}' déjà effectuée il y a ${Math.round((now - last) / 1000)}s — données déjà enregistrées, ne pas rappeler ce tool.`,
+        filename: safe,
+      });
+    }
+    lastCall.set(cooldownKey, now);
 
     const filepath = path.join(VISITS_DIR, `${safe}.json`);
 
@@ -116,7 +133,7 @@ class VisitFile extends Tool {
           return JSON.stringify({ error: 'content requis pour write (objet JSON)' });
         }
         fs.writeFileSync(filepath, JSON.stringify(resolved, null, 2), 'utf-8');
-        return JSON.stringify({ ok: true, filename: safe, path: filepath });
+        return JSON.stringify({ ok: true, filename: safe, saved: true });
       }
 
       if (action === 'patch') {
@@ -129,7 +146,7 @@ class VisitFile extends Tool {
         }
         deepSet(current, fieldPath, value);
         fs.writeFileSync(filepath, JSON.stringify(current, null, 2), 'utf-8');
-        return JSON.stringify({ ok: true, filename: safe, updated: fieldPath, current });
+        return JSON.stringify({ ok: true, filename: safe, updated: fieldPath });
       }
 
       return JSON.stringify({ error: `Action inconnue: ${action}` });
