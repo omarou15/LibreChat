@@ -20,6 +20,7 @@ import type {
   IState,
   LCTool,
 } from '@librechat/agents';
+import type { HookRegistry } from '@librechat/agents';
 import type {
   Agent,
   AgentModelParameters,
@@ -696,6 +697,7 @@ export async function createRun({
   initialSummary,
   calibrationRatio,
   appConfig,
+  hooks,
   streaming = true,
   streamUsage = true,
 }: {
@@ -718,6 +720,8 @@ export async function createRun({
    * (e.g. "Ollama") in the summarization config to SDK-recognized providers.
    */
   appConfig?: AppConfig;
+  /** Optional hook registry for tool lifecycle hooks (PreToolUse, PostToolUse, etc.) */
+  hooks?: HookRegistry;
 } & Pick<
   RunConfig,
   'tokenCounter' | 'customHandlers' | 'indexTokenCountMap' | 'initialSessions'
@@ -932,6 +936,7 @@ export async function createRun({
     indexTokenCountMap,
     initialSessions,
     calibrationRatio,
+    hooks,
     ...(enableToolOutputReferences && {
       toolOutputReferences: { enabled: true },
     }),

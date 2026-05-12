@@ -32,7 +32,7 @@ const visitFileSchema = {
     path: {
       type: 'string',
       description:
-        '[patch] Chemin dot-notation vers le champ à modifier (ex: "logement.surface_habitable" ou "pieces").',
+        '[patch] Chemin dot-notation vers le champ à modifier (ex: "logement.surface_habitable"). Laisser vide ("") pour fusionner un objet complet à la racine — préférer cette forme pour mettre à jour plusieurs sections en un seul appel.',
     },
     value: {
       description: '[patch] Valeur à définir — string, number, boolean, array ou object.',
@@ -59,6 +59,19 @@ function ensureVisitsDir() {
 function tryParseJson(v) {
   if (typeof v !== 'string') return v;
   try { return JSON.parse(v); } catch { return v; }
+}
+
+function deepMerge(target, source) {
+  for (const key of Object.keys(source)) {
+    const sv = source[key];
+    const tv = target[key];
+    if (sv !== null && typeof sv === 'object' && !Array.isArray(sv)
+        && tv !== null && typeof tv === 'object' && !Array.isArray(tv)) {
+      deepMerge(tv, sv);
+    } else {
+      target[key] = sv;
+    }
+  }
 }
 
 function deepSet(obj, dotPath, value) {
@@ -89,8 +102,36 @@ class VisitFile extends Tool {
   constructor(fields = {}) {
     super(fields);
     this.name = 'visit_file';
-    this.description =
-      "Gère le fichier JSON de la visite technique en cours. RÈGLE ABSOLUE : quand l'utilisateur fournit plusieurs informations en même temps, regroupe TOUT en UN SEUL appel 'write'. N'appelle JAMAIS ce tool plusieurs fois de suite pour le même message. 'patch' = un seul champ à la fois dans un message ultérieur. 'read' = uniquement si l'utilisateur le demande explicitement.";
+    this.description = `Gère le fichier JSON de la visite technique EnergyCo.
+
+RÈGLES : répondre à l'utilisateur D'ABORD, puis appeler ce tool UNE SEULE FOIS à la fin. Quand ce tool retourne ok:true → STOP, ne pas générer de texte supplémentaire. Ne jamais appeler plusieurs fois dans le même tour. 'read' uniquement si l'utilisateur le demande explicitement.
+PATCH : toujours utiliser action=patch avec path="" et value=objet contenant TOUTES les sections à mettre à jour en un seul appel. Exemple : {"systemes":{"chauffage":{...},"ecs":{...}},"enveloppe":{"murs":{...}}}. Ne jamais faire plusieurs patches séparés.
+
+SCHÉMA JSON DE RÉFÉRENCE :
+{
+  "visite": { "id": "", "date": "YYYY-MM-DD", "technicien": "", "adresse": "", "mission": "", "statut": "en_cours" },
+  "logement": { "type": "", "annee_construction": null, "surface_habitable": null, "nb_niveaux": null, "nb_occupants": null, "hauteur_sous_plafond_m": null },
+  "pieces": [{ "nom": "", "niveau": "RDC|R+1|Sous-sol", "type": "sejour|cuisine|chambre|salle_de_bain|wc|couloir|bureau|buanderie|garage|cave|combles|autre", "surface_m2": null, "longueur_m": null, "largeur_m": null, "observations": null }],
+  "ouvertures": {
+    "fenetres": [{ "type": "simple|double|triple", "materiau": "PVC|bois|aluminium|mixte|indetermine", "presence_entree_air": null, "etat": "bon|moyen|mauvais", "nb": null, "observations": null }],
+    "portes_ext": [{ "type": "pleine|vitree|mixte", "materiau": "PVC|bois|aluminium|acier|indetermine", "vitrage": "simple|double|sans", "etat": "bon|moyen|mauvais", "observations": null }]
+  },
+  "enveloppe": {
+    "murs": { "materiau": "brique|beton|parpaing|ossature_bois|pierre|indetermine", "annee_construction": null, "isolation": { "type": "ITE|ITI|absente|indetermine", "epaisseur_cm": null, "materiau_isolant": null }, "etat": "bon|moyen|mauvais|indetermine" },
+    "planchers_bas": [{ "type": "cave|vide_sanitaire|terre_plein|dalle_beton|indetermine", "isolation": { "type": "sous_face|insufflee|absente|indetermine", "epaisseur_cm": null }, "etat": "bon|moyen|mauvais|indetermine" }],
+    "planchers_hauts": [{ "type": "combles_perdus|combles_amenages|rampants|toit_terrasse|indetermine", "isolation": { "type": "soufflage|rouleaux|absente|indetermine", "epaisseur_cm": null, "materiau_isolant": null }, "etat": "bon|moyen|mauvais|indetermine" }],
+    "ponts_thermiques": []
+  },
+  "systemes": {
+    "chauffage": { "type": "", "marque": null, "modele": null, "puissance_kw": null, "annee_installation": null, "fluide": null, "rendement": null, "etat": "bon|moyen|mauvais|indetermine", "notes": null },
+    "ecs": { "type": "", "marque": null, "modele": null, "volume_l": null, "puissance_kw": null, "annee_installation": null, "etat": "bon|moyen|mauvais|indetermine", "notes": null },
+    "ventilation": { "type": "VMC_simple_flux|VMC_double_flux|VMI|naturelle|absente|indetermine", "marque": null, "modele": null, "annee_installation": null, "etat": "bon|moyen|mauvais|indetermine", "notes": null },
+    "climatisation": null, "regulation": null, "emetteurs": null
+  },
+  "sources": { "bdnb": null, "dpe": null, "ademe": null, "documents_transmis": [] },
+  "photos": [{ "id": "photo_001", "type": "facade_exterieure|interieur_piece|equipement_technique|plan_architectural|pathologie_closeup|document_etiquette|mixte|illisible", "sujet": "", "constat": "", "analyse_vt": "", "points_attention": [], "champs_patches": [], "fiabilite": "haute|moyenne|faible" }],
+  "observations": [], "hypotheses": [], "donnees_manquantes": [], "checklist": {}, "synthese_visite": null
+}`;
     this.schema = visitFileSchema;
   }
 
@@ -102,15 +143,13 @@ class VisitFile extends Tool {
       return JSON.stringify({ error: 'Nom de fichier invalide' });
     }
 
-    const cooldownKey = `${safe}:${action}`;
+    /* Cooldown keyed on filename only (not action) — blocks any second call to the
+     * same file within COOLDOWN_MS regardless of action type (write/patch/read). */
+    const cooldownKey = safe;
     const now = Date.now();
     const last = lastCall.get(cooldownKey);
     if (last && now - last < COOLDOWN_MS) {
-      return JSON.stringify({
-        skipped: true,
-        reason: `Opération '${action}' déjà effectuée il y a ${Math.round((now - last) / 1000)}s — données déjà enregistrées, ne pas rappeler ce tool.`,
-        filename: safe,
-      });
+      return JSON.stringify({ ok: true, filename: safe });
     }
     lastCall.set(cooldownKey, now);
 
@@ -137,16 +176,24 @@ class VisitFile extends Tool {
       }
 
       if (action === 'patch') {
-        if (!fieldPath || value === undefined) {
-          return JSON.stringify({ error: 'path et value sont requis pour patch' });
+        if (value === undefined) {
+          return JSON.stringify({ error: 'value est requis pour patch' });
         }
         let current = {};
         if (fs.existsSync(filepath)) {
           current = JSON.parse(fs.readFileSync(filepath, 'utf-8'));
         }
-        deepSet(current, fieldPath, value);
+        if (!fieldPath || fieldPath === '') {
+          const merged = tryParseJson(value);
+          if (!merged || typeof merged !== 'object' || Array.isArray(merged)) {
+            return JSON.stringify({ error: 'Pour un patch racine (path vide), value doit être un objet' });
+          }
+          deepMerge(current, merged);
+        } else {
+          deepSet(current, fieldPath, value);
+        }
         fs.writeFileSync(filepath, JSON.stringify(current, null, 2), 'utf-8');
-        return JSON.stringify({ ok: true, filename: safe, updated: fieldPath });
+        return JSON.stringify({ ok: true, filename: safe, updated: fieldPath || 'root' });
       }
 
       return JSON.stringify({ error: `Action inconnue: ${action}` });

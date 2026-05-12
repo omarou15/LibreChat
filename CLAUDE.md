@@ -172,3 +172,48 @@ Multi-line imports count total character length across all lines. Consolidate va
 ## Formatting
 
 Fix all formatting lint errors (trailing spaces, tabs, newlines, indentation) using auto-fix when available. All TypeScript/ESLint warnings and errors **must** be resolved.
+
+---
+
+## Fork EnergyCo — Maintenabilité upstream
+
+Ce projet est un fork de LibreChat avec des features métier (audit énergétique). L'objectif est de pouvoir merger les mises à jour upstream sans conflits majeurs.
+
+**Audit complet :** [`.claude/UPSTREAM_AUDIT.md`](.claude/UPSTREAM_AUDIT.md)
+
+### Règle d'or
+
+> **Toujours créer de nouveaux fichiers plutôt que modifier des fichiers core LibreChat.**
+
+Quand une modification d'un fichier core est inévitable, la garder à **une seule ligne** (un import, un export, un spread) pour que le conflit de merge soit trivial.
+
+### Fichiers core sensibles (à toucher le moins possible)
+
+| Fichier | Sensibilité |
+|---------|-------------|
+| `client/src/components/Chat/Input/ChatForm.tsx` | Élevée — change souvent upstream |
+| `client/src/components/Nav/NewChat.tsx` | Moyenne |
+| `client/src/components/UnifiedSidebar/ExpandedPanel.tsx` | Moyenne |
+| `packages/data-schemas/src/methods/conversation.ts` | Modification intentionnelle — voir audit |
+
+### Modifications intentionnelles (à re-appliquer après chaque merge upstream)
+
+Trois fichiers ont des suppressions de vérifications multi-tenant, **volontaires** pour un déploiement interne mono-organisation. Ils sont documentés dans l'audit avec la procédure exacte de re-application.
+
+---
+
+## Agent Visite Technique — Notes d'architecture
+
+### Hook anti-boucle `visit_file` (`api/server/controllers/agents/client.js`)
+
+Un hook `PostToolUse` est enregistré dans `runAgents()` à chaque tour. Il autorise le premier appel `visit_file` réussi (`ok: true`), puis bloque tout appel suivant avec `preventContinuation: true`.
+
+C'est une correction anti-boucle pragmatique, pas une architecture finale. La solution idéale serait de permettre une réponse finale texte après le premier tool call, tout en empêchant tout nouveau tool call `visit_file` dans cette réponse finale — via un hook `PreToolUse` retournant `decision: 'deny'` quand `visitFileSucceeded === true`.
+
+### Paramètre `hooks` dans `createRun` (`packages/api/src/agents/run.ts`)
+
+Un paramètre optionnel `hooks?: HookRegistry` a été ajouté à `createRun()` et passé à `Run.create()`. Ce paramètre n'existait pas dans le code upstream. À re-vérifier lors des merges upstream de `packages/api`.
+
+### Schéma JSON de l'agent
+
+Le schéma JSON de référence de la visite est embarqué dans la description du tool `visit_file` (`api/app/clients/tools/structured/VisitFile.js`), pas dans le system prompt. Le system prompt est dans `data/visite-technique-system-prompt.md` — à copier-coller dans la config UI de l'agent après chaque modification.

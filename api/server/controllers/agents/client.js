@@ -38,6 +38,7 @@ const {
   Callback,
   Providers,
   TitleMethod,
+  HookRegistry,
   formatMessage,
   formatAgentMessages,
   createMetadataAggregator,
@@ -981,6 +982,31 @@ class AgentClient extends BaseClient {
           );
         }
 
+        /* Allow one visit_file success per turn (so the LLM can generate its
+         * text response after the first tool execution). Block any second
+         * successful call — that's the loop starting again. */
+        let visitFileSucceeded = false;
+        const hooks = new HookRegistry();
+        hooks.register('PostToolUse', {
+          pattern: '^visit_file$',
+          hooks: [(input) => {
+            try {
+              const out = typeof input.toolOutput === 'string'
+                ? JSON.parse(input.toolOutput)
+                : input.toolOutput;
+              if (out?.ok === true) {
+                if (visitFileSucceeded) {
+                  return { preventContinuation: true };
+                }
+                visitFileSucceeded = true;
+              }
+            } catch {
+              // ignore parse errors
+            }
+            return {};
+          }],
+        });
+
         run = await createRun({
           agents,
           messages,
@@ -996,6 +1022,7 @@ class AgentClient extends BaseClient {
           summarizationConfig: appConfig?.summarization,
           appConfig,
           tokenCounter,
+          hooks,
         });
 
         if (!run) {
