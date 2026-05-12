@@ -983,9 +983,7 @@ class AgentClient extends BaseClient {
         }
 
         /* Allow one visit_file success per turn (so the LLM can generate its
-         * text response after the first tool execution). Block any second
-         * successful call — that's the loop starting again. */
-        let visitFileSucceeded = false;
+         * Stop the run immediately on the first ok:true — no second LLM turn. */
         const hooks = new HookRegistry();
         hooks.register('PostToolUse', {
           pattern: '^visit_file$',
@@ -995,10 +993,7 @@ class AgentClient extends BaseClient {
                 ? JSON.parse(input.toolOutput)
                 : input.toolOutput;
               if (out?.ok === true) {
-                if (visitFileSucceeded) {
-                  return { preventContinuation: true };
-                }
-                visitFileSucceeded = true;
+                return { preventContinuation: true };
               }
             } catch {
               // ignore parse errors
