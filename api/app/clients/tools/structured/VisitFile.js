@@ -104,8 +104,8 @@ class VisitFile extends Tool {
     this.name = 'visit_file';
     this.description = `Gère le fichier JSON de la visite technique EnergyCo.
 
-RÈGLES : répondre à l'utilisateur D'ABORD, puis appeler ce tool UNE SEULE FOIS à la fin. Quand ce tool retourne ok:true → STOP, ne pas générer de texte supplémentaire. Ne jamais appeler plusieurs fois dans le même tour. 'read' uniquement si l'utilisateur le demande explicitement.
-PATCH : toujours utiliser action=patch avec path="" et value=objet contenant TOUTES les sections à mettre à jour en un seul appel. Exemple : {"systemes":{"chauffage":{...},"ecs":{...}},"enveloppe":{"murs":{...}}}. Ne jamais faire plusieurs patches séparés.
+RÈGLES : répondre à l'utilisateur D'ABORD, puis appeler ce tool UNE SEULE FOIS à la fin. Quand ce tool retourne ok:true → STOP immédiat, ne plus rien générer. Ne jamais afficher le contenu du patch dans la réponse au technicien. Ne jamais appeler plusieurs fois dans le même tour.
+PATCH : utiliser action=patch, path="" (vide), value=objet avec toutes les sections à mettre à jour en un seul appel. Ne jamais faire plusieurs patches séparés. 'read' uniquement si l'utilisateur le demande explicitement.
 
 SCHÉMA JSON DE RÉFÉRENCE :
 {
