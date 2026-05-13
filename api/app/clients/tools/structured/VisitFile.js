@@ -4,11 +4,6 @@ const path = require('path');
 
 const VISITS_DIR = path.join(__dirname, '..', '..', '..', '..', '..', 'data', 'visits');
 
-/* Per-file cooldown: tracks { action, ts } of the last call.
- * If the exact same (file, action) was executed within COOLDOWN_MS, skip it
- * and return a short-circuit message so the LLM doesn't loop. */
-const COOLDOWN_MS = 120000;
-const lastCall = new Map(); // key: `${safe}:${action}` → timestamp
 
 const visitFileSchema = {
   type: 'object',
@@ -142,16 +137,6 @@ SCHÉMA JSON DE RÉFÉRENCE :
     if (!safe) {
       return JSON.stringify({ error: 'Nom de fichier invalide' });
     }
-
-    /* Cooldown keyed on filename only (not action) — blocks any second call to the
-     * same file within COOLDOWN_MS regardless of action type (write/patch/read). */
-    const cooldownKey = safe;
-    const now = Date.now();
-    const last = lastCall.get(cooldownKey);
-    if (last && now - last < COOLDOWN_MS) {
-      return JSON.stringify({ ok: true, filename: safe });
-    }
-    lastCall.set(cooldownKey, now);
 
     const filepath = path.join(VISITS_DIR, `${safe}.json`);
 
