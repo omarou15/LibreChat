@@ -104,28 +104,39 @@ PATCH : utiliser action=patch, path="" (vide), value=objet avec toutes les secti
 
 SCHÉMA JSON DE RÉFÉRENCE :
 {
-  "visite": { "id": "", "date": "YYYY-MM-DD", "technicien": "", "adresse": "", "mission": "", "statut": "en_cours" },
-  "logement": { "type": "", "annee_construction": null, "surface_habitable": null, "nb_niveaux": null, "nb_occupants": null, "hauteur_sous_plafond_m": null },
-  "pieces": [{ "nom": "", "niveau": "RDC|R+1|Sous-sol", "type": "sejour|cuisine|chambre|salle_de_bain|wc|couloir|bureau|buanderie|garage|cave|combles|autre", "surface_m2": null, "longueur_m": null, "largeur_m": null, "observations": null }],
-  "ouvertures": {
-    "fenetres": [{ "type": "simple|double|triple", "materiau": "PVC|bois|aluminium|mixte|indetermine", "presence_entree_air": null, "etat": "bon|moyen|mauvais", "nb": null, "observations": null }],
-    "portes_ext": [{ "type": "pleine|vitree|mixte", "materiau": "PVC|bois|aluminium|acier|indetermine", "vitrage": "simple|double|sans", "etat": "bon|moyen|mauvais", "observations": null }]
+  "adresse": "",
+  "date": "YYYY-MM-DDTHH:MM:SS",
+  "technicien": "",
+  "mission": "audit_energetique|DPE|conseil",
+  "statut": "en_cours|terminée",
+  "generalites": {
+    "type_batiment": "maison individuelle|appartement|immeuble|local_commercial",
+    "annee_construction": null,
+    "surface_reference": null,
+    "nb_niveaux": null,
+    "hauteur_sous_plafond": null,
+    "altitude": null,
+    "nb_logements": null,
+    "nb_occupants": null
   },
   "enveloppe": {
-    "murs": { "materiau": "brique|beton|parpaing|ossature_bois|pierre|indetermine", "annee_construction": null, "isolation": { "type": "ITE|ITI|absente|indetermine", "epaisseur_cm": null, "materiau_isolant": null }, "etat": "bon|moyen|mauvais|indetermine" },
+    "murs": [{ "materiau": "brique|beton|parpaing|pierre|ossature_bois|indetermine", "isolation": { "type": "ITE|ITI|absente|indetermine", "epaisseur_cm": null, "materiau_isolant": null }, "etat": "bon|moyen|mauvais|indetermine", "fiabilite": "haute|moyenne|faible" }],
     "planchers_bas": [{ "type": "cave|vide_sanitaire|terre_plein|dalle_beton|indetermine", "isolation": { "type": "sous_face|insufflee|absente|indetermine", "epaisseur_cm": null }, "etat": "bon|moyen|mauvais|indetermine" }],
-    "planchers_hauts": [{ "type": "combles_perdus|combles_amenages|rampants|toit_terrasse|indetermine", "isolation": { "type": "soufflage|rouleaux|absente|indetermine", "epaisseur_cm": null, "materiau_isolant": null }, "etat": "bon|moyen|mauvais|indetermine" }],
+    "toitures": [{ "type": "combles_perdus|combles_amenages|rampants|toit_terrasse|indetermine", "isolation": { "type": "soufflage|rouleaux|absente|indetermine", "epaisseur_cm": null, "materiau_isolant": null }, "etat": "bon|moyen|mauvais|indetermine" }],
+    "menuiseries": [{ "type_vitrage": "simple|double|triple", "materiau_cadre": "PVC|bois|aluminium|mixte|indetermine", "presence_entree_air": null, "volets": null, "nb": null, "orientation": null, "surface_totale": null, "etat": "bon|moyen|mauvais|indetermine" }],
     "ponts_thermiques": []
   },
-  "systemes": {
-    "chauffage": { "type": "", "marque": null, "modele": null, "puissance_kw": null, "annee_installation": null, "fluide": null, "rendement": null, "etat": "bon|moyen|mauvais|indetermine", "notes": null },
-    "ecs": { "type": "", "marque": null, "modele": null, "volume_l": null, "puissance_kw": null, "annee_installation": null, "etat": "bon|moyen|mauvais|indetermine", "notes": null },
-    "ventilation": { "type": "VMC_simple_flux|VMC_double_flux|VMI|naturelle|absente|indetermine", "marque": null, "modele": null, "annee_installation": null, "etat": "bon|moyen|mauvais|indetermine", "notes": null },
-    "climatisation": null, "regulation": null, "emetteurs": null
+  "installation": {
+    "chauffage": [{ "type_generateur": "", "marque": null, "modele": null, "puissance_kw": null, "annee_installation": null, "fluide": null, "cop": null, "type_emetteur": "", "mode_chauffage": "central|electrique_direct|autre", "energie": "", "etat": "bon|moyen|mauvais|indetermine", "fiabilite": "haute|moyenne|faible" }],
+    "ecs": [{ "type_production": "", "marque": null, "modele": null, "volume_l": null, "puissance_kw": null, "annee_installation": null, "installation": "individuelle|collective", "etat": "bon|moyen|mauvais|indetermine", "fiabilite": "haute|moyenne|faible" }],
+    "ventilation": { "type": "VMC_simple_flux|VMC_double_flux|VMI|naturelle|absente|indetermine", "hygro": "A|B|non|indetermine", "marque": null, "modele": null, "annee_installation": null, "etat": "bon|moyen|mauvais|indetermine" },
+    "climatisation": null,
+    "regulation": null,
+    "emetteurs": null
   },
   "sources": { "bdnb": null, "dpe": null, "ademe": null, "documents_transmis": [] },
   "photos": [{ "id": "photo_001", "type": "facade_exterieure|interieur_piece|equipement_technique|plan_architectural|pathologie_closeup|document_etiquette|mixte|illisible", "sujet": "", "constat": "", "analyse_vt": "", "points_attention": [], "champs_patches": [], "fiabilite": "haute|moyenne|faible" }],
-  "observations": [], "hypotheses": [], "donnees_manquantes": [], "checklist": {}, "synthese_visite": null
+  "observations": [], "donnees_manquantes": []
 }`;
     this.schema = visitFileSchema;
   }

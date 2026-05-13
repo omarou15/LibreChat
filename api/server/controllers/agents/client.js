@@ -992,7 +992,7 @@ class AgentClient extends BaseClient {
               const out = typeof input.toolOutput === 'string'
                 ? JSON.parse(input.toolOutput)
                 : input.toolOutput;
-              if (out?.ok === true) {
+              if (out?.ok === true && input.toolInput?.action !== 'read') {
                 return { updatedOutput: '{"ok": true}' };
               }
             } catch {
