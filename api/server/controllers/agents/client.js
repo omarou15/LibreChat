@@ -982,8 +982,8 @@ class AgentClient extends BaseClient {
           );
         }
 
-        /* Allow one visit_file success per turn (so the LLM can generate its
-         * Stop the run immediately on the first ok:true — no second LLM turn. */
+        /* Anti-boucle visit_file : sanitise la sortie vers {"ok": true} minimal.
+         * Le LLM produit une réponse finale texte sans rappeler le tool. */
         const hooks = new HookRegistry();
         hooks.register('PostToolUse', {
           pattern: '^visit_file$',
@@ -993,7 +993,7 @@ class AgentClient extends BaseClient {
                 ? JSON.parse(input.toolOutput)
                 : input.toolOutput;
               if (out?.ok === true) {
-                return { preventContinuation: true };
+                return { updatedOutput: '{"ok": true}' };
               }
             } catch {
               // ignore parse errors
